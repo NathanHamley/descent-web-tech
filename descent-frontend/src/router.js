@@ -15,7 +15,7 @@ export default new Router({
       component: Home
     },
     {
-      path: '/lobby/:name',
+      path: '/game/:name',
       name: 'gameLobby',
       component: GameLobby,
       props: true

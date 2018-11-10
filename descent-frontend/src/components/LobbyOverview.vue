@@ -32,57 +32,59 @@ import axios from "axios";
 
 export default {
   name: "Lobby",
+  mounted() {
+    this.connect();
+    axios
+      .get("http://localhost:8080/lobbies/all")
+      .then(response => {
+        console.log("Success got all, received " + JSON.stringify(response));
+        this.gameLobbies = [];
+        for (var i = 0; i < response.data.length; i++) {
+          this.gameLobbies.push(this.sanitizeLobby(response.data[i]));
+        }
+      })
+      .catch(error => {
+        console.log("Received error: " + error);
+      });
+  },
   data() {
     return {
       playerName: "test",
       gameName: "",
-      gameLobbies: [
-        {
-          name: "Test",
-          overlord: { name: "Evil" },
-          heroes: [
-            {
-              name: "Savior"
-            },
-            {
-              name: "CoolGuy"
-            }
-          ]
-        }
-      ],
+      gameLobbies: [],
       connected: false
     };
   },
-
+  beforeDestroy() {
+    console.log("calling before Destroy");
+    this.disconnect();
+  },
   methods: {
     joinGame: function(gameName, overlord) {
+      console.log("Join game called: " + joinObject);
       const joinObject = JSON.stringify(
         this.createJoinRequest(gameName, overlord)
       );
-      console.log("Join game called: " + joinObject);
       if (this.stompClient && this.stompClient.connected) {
-        this.stompClient.send("/app-receive/joinGame", joinObject, {});
+        this.stompClient.send("/descent/joinGame", joinObject, {});
       }
-      this.$user = this.playerName;
-      this.$router.push('lobby/'+gameName);
+      this.$router.push("game/" + gameName);
     },
     newGame: function(gameName) {
-      const newGameObject = JSON.stringify(this.createNewGame(gameName));
       console.log("New Game called: " + newGameObject);
+      const newGameObject = JSON.stringify(this.createNewGame(gameName));
       if (this.stompClient && this.stompClient.connected) {
-        this.stompClient.send("/app-receive/createLobby", newGameObject, {});
+        this.stompClient.send("/descent/createGame", newGameObject, {});
       }
     },
     connect: function() {
-      this.socket = new SockJS("http://localhost:8080/websocket-endpoint");
+      this.socket = new SockJS("http://localhost:8080/descent/ws");
       this.stompClient = Stomp.over(this.socket);
       this.stompClient.connect(
         {},
         frame => {
           this.connected = true;
-          console.log("Frame received: " + frame);
           this.stompClient.subscribe("/topic/lobbies", lobby => {
-            console.log("Received: " + lobby);
             console.log("Body: " + lobby.body);
             const received = JSON.parse(lobby.body);
             if (received.heroes === null) {
@@ -134,7 +136,7 @@ export default {
       return null;
     },
     sanitizeLobby(lobby) {
-      console.log("Sanitizing: "+ lobby);
+      console.log("Sanitizing: " + lobby);
       if (lobby.heroes === null) {
         lobby.heroes = [];
       }
@@ -143,25 +145,6 @@ export default {
       }
       return lobby;
     }
-  },
-  mounted() {
-    this.connect();
-    axios
-      .get("http://localhost:8080/lobbies/all")
-      .then(response => {
-        console.log("Success got all, received " + JSON.stringify(response));
-        this.gameLobbies = [];
-        for(var i = 0;i<response.data.length;i++){
-          this.gameLobbies.push(this.sanitizeLobby(response.data[i]));
-        }
-      })
-      .catch(error => {
-        console.log("Received error: " + error);
-      });
-  },
-  beforeDestroy() {
-    console.log("calling before Destroy");
-    this.disconnect();
   }
 };
 </script>
