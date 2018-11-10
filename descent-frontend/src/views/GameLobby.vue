@@ -49,7 +49,7 @@ export default {
 
   methods: {
     connect: function() {
-      this.socket = new SockJS("http://localhost:8080/websocket-endpoint");
+      this.socket = new SockJS("http://localhost:8080/descent/ws");
       this.stompClient = Stomp.over(this.socket);
       this.stompClient.connect(
         {},

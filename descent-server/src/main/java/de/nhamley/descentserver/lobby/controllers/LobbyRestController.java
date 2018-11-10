@@ -22,15 +22,16 @@ public class LobbyRestController {
 	@CrossOrigin(origins = "http://localhost:8081")
 	@GetMapping(path = "/lobbies/all", produces = "application/json")
 	public Collection<GameLobby> getExistingLobbies() {
+		log.debug("Received Request to find all open lobbies");
 		return gameFindService.getAllLobbies();
 	}
 
 	@CrossOrigin(origins = "http://localhost:8081")
 	@GetMapping(path = "/lobbies/{name}", produces = "application/json")
 	public GameLobby getLobby(@PathVariable("name") String name) {
-		log.info("Received request for gameLobby: " + name);
+		log.debug("Received request for gameLobby: " + name);
 		GameLobby lobby = gameFindService.getLobby(name);
-		log.info("Returning: " + lobby);
+		log.debug("Returning: " + lobby);
 		return lobby;
 	}
 
